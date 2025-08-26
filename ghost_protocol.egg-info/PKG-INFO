@@ -1,0 +1,88 @@
+Metadata-Version: 2.1
+Name: ghost-protocol
+Version: 1.0.0
+Summary: Python-based adversary simulation platform for security training
+Home-page: https://github.com/ghostprotocol/ghost-protocol
+Author: Ghost Protocol Team
+Author-email: team@ghostprotocol.dev
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Security
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
+# Ghost Protocol
+
+Ghost Protocol is a Python-based, modular adversary simulation platform designed for security training and testing. It provides a comprehensive environment for security professionals to simulate real-world attack scenarios in a controlled setting.
+
+## Features
+
+- **Modular Architecture**: Extensible plugin system for custom modules
+- **Multi-User Collaboration**: Role-based access control with real-time synchronization
+- **Cross-Platform Support**: Compatible with Windows, Linux, and macOS
+- **Security-First Design**: End-to-end encryption and comprehensive audit logging
+- **MITRE ATT&CK Integration**: Automated mapping to ATT&CK techniques
+- **Comprehensive Reporting**: Detailed timelines and evidence collection
+
+## Quick Start
+
+### Installation
+
+\`\`\`bash
+pip install -r requirements.txt
+python setup.py install
+\`\`\`
+
+### Starting the Team Server
+
+\`\`\`bash
+gpserver 0.0.0.0 your_password
+\`\`\`
+
+### Connecting with Client
+
+\`\`\`bash
+ghost
+\`\`\`
+
+## Architecture
+
+The Ghost Protocol system consists of several key components:
+
+- **Team Server**: Central command and control server
+- **Client**: Operator interface for managing operations
+- **Beacon Payloads**: Post-exploitation agents for compromised systems
+- **Modules**: Specialized components for different attack phases
+
+## Modules
+
+- **Reconnaissance**: Network and system discovery
+- **Weaponization**: Payload generation and document weaponization
+- **Delivery**: Phishing and payload delivery mechanisms
+- **Lateral Movement**: Network traversal and privilege escalation
+- **User Exploitation**: Credential harvesting and session hijacking
+- **Reporting**: Evidence collection and report generation
+
+## Configuration
+
+Configuration files are located in the `config/` directory. See the documentation for detailed configuration options.
+
+## Security Considerations
+
+Ghost Protocol is designed for authorized security testing and training only. Users are responsible for ensuring compliance with all applicable laws and regulations.
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

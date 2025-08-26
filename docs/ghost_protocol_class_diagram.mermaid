@@ -1,0 +1,457 @@
+classDiagram
+    %% Core Components
+    class GhostProtocolCore {
+        +initialize() bool
+        +shutdown() bool
+    }
+    
+    %% Team Server Components
+    class TeamServer {
+        -host: str
+        -port: int
+        -certificate_path: str
+        -listeners: List[Listener]
+        -db_connection: DatabaseConnection
+        +start() bool
+        +stop() bool
+        +get_status() ServerStatus
+        +register_listener(listener: Listener) bool
+    }
+    
+    class ServerCore {
+        -config: ServerConfig
+        -modules: List[ServerModule]
+        -event_bus: EventBus
+        +initialize(config: ServerConfig) bool
+        +load_modules() bool
+        +process_command(command: Command) CommandResult
+    }
+    
+    class SessionManager {
+        -active_sessions: Dict[str, BeaconSession]
+        +create_session(beacon_id: str, metadata: Dict) BeaconSession
+        +get_session(session_id: str) BeaconSession
+        +list_sessions() List[BeaconSession]
+        +terminate_session(session_id: str) bool
+    }
+    
+    class ListenerManager {
+        -listeners: Dict[str, Listener]
+        +create_listener(config: ListenerConfig) Listener
+        +get_listener(listener_id: str) Listener
+        +list_listeners() List[Listener]
+        +stop_listener(listener_id: str) bool
+    }
+    
+    class DataManager {
+        -db_session: DatabaseSession
+        +initialize(connection_string: str) bool
+        +get_session() DatabaseSession
+        +close() bool
+        +backup(path: str) bool
+    }
+    
+    class ModuleManager {
+        -loaded_modules: Dict[str, ServerModule]
+        +load_module(module_path: str) ServerModule
+        +get_module(module_name: str) ServerModule
+        +list_modules() List[ServerModule]
+        +unload_module(module_name: str) bool
+    }
+    
+    class ReportingEngine {
+        -data_manager: DataManager
+        -report_templates: Dict[str, Template]
+        +generate_report(operation_id: str, template_name: str) Report
+        +generate_timeline(operation_id: str) Timeline
+        +map_to_mitre_attack(events: List[Event]) Dict
+    }
+    
+    %% Client Components
+    class ClientApplication {
+        -config: ClientConfig
+        -server_connections: List[ServerConnection]
+        -ui_manager: UIManager
+        +start() bool
+        +connect_to_server(connection_profile: ConnectionProfile) ServerConnection
+        +disconnect_from_server(server_id: str) bool
+    }
+    
+    class ClientCore {
+        -config: ClientConfig
+        -modules: List[ClientModule]
+        -event_bus: EventBus
+        +initialize(config: ClientConfig) bool
+        +load_modules() bool
+        +execute_command(command: str, args: Dict) CommandResult
+    }
+    
+    class UIManager {
+        -main_window: MainWindow
+        -visualizations: Dict[str, Visualization]
+        -console_manager: ConsoleManager
+        +initialize() bool
+        +register_visualization(name: str, viz: Visualization) bool
+        +show_visualization(name: str) bool
+        +create_console(name: str) Console
+    }
+    
+    class ConsoleManager {
+        -active_consoles: Dict[str, Console]
+        +create_console(name: str) Console
+        +get_console(console_id: str) Console
+        +list_consoles() List[Console]
+        +close_console(console_id: str) bool
+    }
+    
+    class ClientModuleInterface {
+        -module_name: str
+        -ui_components: List[UIComponent]
+        +register_ui_components(ui_registry: UIRegistry) void
+        +handle_server_event(event_type: str, data: Dict) void
+    }
+    
+    class VisualizationEngine {
+        -renderers: Dict[str, Renderer]
+        +register_renderer(name: str, renderer: Renderer) bool
+        +render_graph(data: Dict, options: Dict) Image
+        +render_table(data: List, options: Dict) Table
+    }
+    
+    %% Beacon Components
+    class BeaconPayload {
+        -config: BeaconConfig
+        -comms: CommunicationHandler
+        -task_engine: TaskEngine
+        -modules: List[BeaconModule]
+        +initialize(config: BeaconConfig) bool
+        +start_communication() bool
+        +process_tasks() bool
+        +shutdown() bool
+    }
+    
+    class CommunicationHandler {
+        -protocols: Dict[str, ProtocolHandler]
+        -current_protocol: str
+        -jitter: int
+        -proxy_settings: Dict
+        +initialize(config: CommConfig) bool
+        +set_active_protocol(protocol_name: str) bool
+        +check_in() CheckInResult
+        +send_data(data: bytes) bool
+        +receive_data() bytes
+    }
+    
+    class TaskEngine {
+        -pending_tasks: Queue[Task]
+        -completed_tasks: List[TaskResult]
+        +add_task(task: Task) bool
+        +execute_next_task() TaskResult
+        +get_completed_tasks() List[TaskResult]
+    }
+    
+    class ProtocolHandler {
+        <<interface>>
+        +initialize(config: Dict) bool
+        +check_connection() bool
+        +send(data: bytes) bool
+        +receive() bytes
+        +shutdown() bool
+    }
+    
+    class BeaconModuleInterface {
+        <<interface>>
+        +get_compatible_platforms() List[str]
+        +on_load() bool
+        +execute_command(command: str, args: Dict) Dict
+        +on_unload() bool
+    }
+    
+    class StealthManager {
+        -execution_profile: ExecutionProfile
+        -memory_manager: MemoryManager
+        +apply_timing(operation: callable) callable
+        +obfuscate_memory(data: bytes) bytes
+        +clean_artifacts() bool
+    }
+    
+    %% Module Interfaces
+    class ModuleInterface {
+        <<interface>>
+        +initialize() bool
+        +get_capabilities() Dict
+        +get_commands() List[str]
+        +execute_command(command: str, args: Dict) Dict
+        +shutdown() bool
+    }
+    
+    class ServerModule {
+        <<interface>>
+        +register_routes(app: FastAPI) void
+        +handle_beacon_output(beacon_id: str, output: Dict) void
+        +get_db_migrations() List[str]
+    }
+    
+    class ClientModule {
+        <<interface>>
+        +register_ui_components(ui_registry: UIRegistry) void
+        +handle_server_event(event_type: str, data: Dict) void
+    }
+    
+    class BeaconModule {
+        <<interface>>
+        +get_compatible_platforms() List[str]
+        +on_load() void
+        +on_unload() void
+    }
+    
+    %% Core Modules
+    class ReconnaissanceModule {
+        -scanners: Dict[str, ScannerInterface]
+        -data_store: ReconDataStore
+        +scan_target(target: Target, scan_type: str) ScanResult
+        +get_vulnerabilities(target: Target) List[Vulnerability]
+        +generate_report(target: Target) Report
+    }
+    
+    class WeaponizationModule {
+        -template_engine: TemplateEngine
+        -payload_generators: Dict[str, PayloadGenerator]
+        -obfuscation_providers: Dict[str, ObfuscationProvider]
+        +create_document(template_name: str, payload: Payload, options: Dict) Document
+        +generate_payload(payload_type: str, options: Dict) Payload
+        +obfuscate_payload(payload: Payload, technique: str) Payload
+    }
+    
+    class DeliveryModule {
+        -email_provider: EmailProvider
+        -campaign_tracker: CampaignTracker
+        -target_manager: TargetManager
+        +create_campaign(name: str, template: EmailTemplate) Campaign
+        +add_targets(campaign_id: str, targets: List[Target]) bool
+        +launch_campaign(campaign_id: str) bool
+        +get_campaign_stats(campaign_id: str) CampaignStats
+    }
+    
+    class LateralMovementModule {
+        -pivot_providers: Dict[str, PivotProvider]
+        -credential_store: CredentialStore
+        -token_manipulator: TokenManipulator
+        +create_pivot(source_id: str, target_id: str, pivot_type: str) Pivot
+        +use_credential(credential: Credential, target: Target) CommandResult
+        +impersonate_token(token: Token, target: Target) CommandResult
+    }
+    
+    class UserExploitationModule {
+        -keylog_provider: KeylogProvider
+        -screen_capture: ScreenCapture
+        -browser_pivot: BrowserPivot
+        +start_keylogger(session_id: str) bool
+        +capture_screenshot(session_id: str) Screenshot
+        +hijack_browser(session_id: str, browser_type: str) BrowserSession
+    }
+    
+    class ReportingModule {
+        -report_generator: ReportGenerator
+        -evidence_collector: EvidenceCollector
+        -timeline_builder: TimelineBuilder
+        +create_report(operation_id: str, report_type: str) Report
+        +collect_evidence(operation_id: str) List[Evidence]
+        +build_timeline(operation_id: str) Timeline
+    }
+    
+    %% Database Schema
+    class DatabaseSchema {
+        +initialize_schema() bool
+        +run_migrations(migration_files: List[str]) bool
+        +verify_schema_integrity() bool
+    }
+    
+    class Operation {
+        -operation_id: UUID
+        -name: str
+        -description: str
+        -start_time: datetime
+        -end_time: datetime
+        -status: OperationStatus
+        -owner_id: UUID
+    }
+    
+    class User {
+        -user_id: UUID
+        -username: str
+        -password_hash: str
+        -email: str
+        -role: str
+        -last_login: datetime
+    }
+    
+    class Target {
+        -target_id: UUID
+        -operation_id: UUID
+        -ip_address: str
+        -hostname: str
+        -os_type: str
+        -os_version: str
+        -tags: Dict
+        -notes: str
+        -discovery_date: datetime
+    }
+    
+    class Beacon {
+        -beacon_id: UUID
+        -operation_id: UUID
+        -target_id: UUID
+        -listener_id: UUID
+        -internal_id: UUID
+        -creation_date: datetime
+        -last_checkin: datetime
+        -beacon_type: str
+        -status: BeaconStatus
+        -exit_date: datetime
+        -config: Dict
+    }
+    
+    class Listener {
+        -listener_id: UUID
+        -operation_id: UUID
+        -name: str
+        -host: str
+        -port: int
+        -protocol: str
+        -status: ListenerStatus
+        -config: Dict
+    }
+    
+    class Credential {
+        -credential_id: UUID
+        -operation_id: UUID
+        -target_id: UUID
+        -credential_type: str
+        -username: str
+        -credential_data: bytes
+        -source: str
+        -collection_date: datetime
+    }
+    
+    class Event {
+        -event_id: UUID
+        -operation_id: UUID
+        -beacon_id: UUID
+        -user_id: UUID
+        -event_type: str
+        -timestamp: datetime
+        -description: str
+        -mitre_technique_id: str
+        -data: Dict
+    }
+    
+    %% Plugin System
+    class PluginManager {
+        -plugins: Dict[str, Any]
+        +discover_plugins(paths: List[str]) List[PluginDescriptor]
+        +validate_plugin(descriptor: PluginDescriptor) bool
+        +load_plugin(descriptor: PluginDescriptor) Any
+        +initialize_plugin(plugin: Any, config: Dict) bool
+        +unload_plugin(plugin: Any) bool
+    }
+    
+    class PluginDescriptor {
+        -name: str
+        -version: str
+        -author: str
+        -description: str
+        -entry_points: Dict[str, str]
+        -dependencies: List[str]
+        -compatibility: List[str]
+        -permissions: List[str]
+    }
+    
+    %% Authentication and Authorization
+    class AuthService {
+        -user_repository: UserRepository
+        -token_manager: TokenManager
+        +authenticate(username: str, password: str) AuthToken
+        +validate_token(token: str) bool
+        +refresh_token(refresh_token: str) AuthToken
+        +revoke_token(token: str) bool
+    }
+    
+    class RoleManager {
+        -role_repository: RoleRepository
+        +get_role_permissions(role_name: str) List[str]
+        +check_permission(user_id: str, permission: str) bool
+        +assign_role(user_id: str, role_name: str) bool
+        +create_role(role_name: str, permissions: List[str]) bool
+    }
+    
+    %% Communication APIs
+    class ApiController {
+        -auth_service: AuthService
+        -role_manager: RoleManager
+        +register_routes(app: FastAPI) void
+        +handle_request(request: Request) Response
+        +validate_request(request: Request) bool
+    }
+    
+    class WebSocketManager {
+        -active_connections: Dict[str, WebSocketConnection]
+        +register_client(client_id: str, connection: WebSocketConnection) bool
+        +broadcast_event(event_type: str, data: Dict) bool
+        +send_to_client(client_id: str, message: Dict) bool
+        +close_connection(client_id: str) bool
+    }
+    
+    %% Relationships
+    GhostProtocolCore <|-- TeamServer
+    GhostProtocolCore <|-- ClientApplication
+    GhostProtocolCore <|-- BeaconPayload
+    
+    TeamServer *-- ServerCore
+    TeamServer *-- SessionManager
+    TeamServer *-- ListenerManager
+    TeamServer *-- DataManager
+    TeamServer *-- ModuleManager
+    TeamServer *-- ReportingEngine
+    TeamServer *-- ApiController
+    TeamServer *-- WebSocketManager
+    
+    ClientApplication *-- ClientCore
+    ClientApplication *-- UIManager
+    ClientApplication *-- ConsoleManager
+    ClientApplication *-- VisualizationEngine
+    ClientApplication *-- ClientModuleInterface
+    
+    BeaconPayload *-- CommunicationHandler
+    BeaconPayload *-- TaskEngine
+    BeaconPayload *-- StealthManager
+    BeaconPayload *-- BeaconModuleInterface
+    
+    CommunicationHandler *-- ProtocolHandler
+    
+    ModuleInterface <|-- ServerModule
+    ModuleInterface <|-- ClientModule
+    ModuleInterface <|-- BeaconModule
+    
+    ServerModule <|-- ReconnaissanceModule
+    ServerModule <|-- WeaponizationModule
+    ServerModule <|-- DeliveryModule
+    ServerModule <|-- LateralMovementModule
+    ServerModule <|-- UserExploitationModule
+    ServerModule <|-- ReportingModule
+    
+    DatabaseSchema -- Operation
+    DatabaseSchema -- User
+    DatabaseSchema -- Target
+    DatabaseSchema -- Beacon
+    DatabaseSchema -- Listener
+    DatabaseSchema -- Credential
+    DatabaseSchema -- Event
+    
+    ModuleManager -- PluginManager
+    PluginManager -- PluginDescriptor
+    
+    ServerCore -- AuthService
+    AuthService -- RoleManager
+    
+    DataManager -- DatabaseSchema

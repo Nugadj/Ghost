@@ -1,0 +1,4 @@
+[console_scripts]
+ghost = ghost_protocol.client.main:main
+gpbeacon = ghost_protocol.beacon.main:main
+gpserver = ghost_protocol.server.main:main

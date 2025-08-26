@@ -1,0 +1,85 @@
+# Ghost Protocol Configuration
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 50050
+  password: ""
+  cert_file: null
+  key_file: null
+  kill_date: null
+  malleable_c2_profile: null
+
+# Database Configuration
+database:
+  host: "localhost"
+  port: 5432
+  username: "ghost_protocol"
+  password: ""
+  database: "ghost_protocol"
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  database: 0
+
+# Security Configuration
+security:
+  secret_key: "your-secret-key-change-in-production"
+  algorithm: "HS256"
+  access_token_expire_minutes: 30
+  password_min_length: 8
+
+# Client Configuration
+client:
+  server_host: "localhost"
+  server_port: 50050
+  auto_connect: false
+  ui_theme: "dark"
+
+# Beacon Configuration
+beacon:
+  sleep_time: 60
+  jitter: 20
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  proxy_url: null
+
+# Module Configuration
+modules:
+  reconnaissance:
+    enabled: true
+    max_concurrent_scans: 5
+    default_timeout: 30
+  
+  weaponization:
+    enabled: true
+    template_dir: "templates"
+    output_dir: "payloads"
+  
+  delivery:
+    enabled: true
+    smtp_server: "localhost"
+    smtp_port: 587
+  
+  lateral_movement:
+    enabled: true
+    max_pivots: 10
+  
+  user_exploitation:
+    enabled: true
+    capture_screenshots: true
+    capture_keystrokes: false
+  
+  reporting:
+    enabled: true
+    output_dir: "reports"
+    include_mitre_mapping: true
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "logs/ghost_protocol.log"
+  max_size: "10MB"
+  backup_count: 5

@@ -1,0 +1,279 @@
+sequenceDiagram
+    participant C as Client
+    participant TS as TeamServer
+    participant SM as SessionManager
+    participant LM as ListenerManager
+    participant B as Beacon
+    participant DM as DataManager
+    participant RM as ReconModule
+    participant WM as WeaponizationModule
+    participant DelM as DeliveryModule
+    participant LMM as LateralMovementModule
+    participant RE as ReportingEngine
+    participant DB as Database
+
+    %% System Initialization
+    Note over TS: Team Server Startup
+    TS->>DB: initialize_database()
+    DB-->>TS: schema_ready
+    TS->>LM: initialize()
+    LM-->>TS: listeners_ready
+    TS->>SM: initialize()
+    SM-->>TS: session_manager_ready
+    TS->>DM: initialize(connection_string)
+    DM-->>TS: data_manager_ready
+    
+    %% Client Connection
+    Note over C,TS: Client Authentication
+    C->>TS: connect(host, port, credentials)
+    TS->>TS: validate_certificate_fingerprint()
+    TS->>TS: authenticate_user(credentials)
+    TS-->>C: auth_token, connection_established
+    C->>TS: subscribe_to_events()
+    TS-->>C: event_subscription_confirmed
+    
+    %% Operation Creation
+    Note over C,DB: Operation Management
+    C->>TS: create_operation(name, description)
+    TS->>DM: create_operation_record(operation_data)
+    DM->>DB: INSERT INTO operations(...)
+    DB-->>DM: operation_id
+    DM-->>TS: operation_created
+    TS-->>C: operation_response(operation_id)
+    
+    %% Listener Setup
+    Note over C,LM: Listener Configuration
+    C->>TS: create_listener(protocol, host, port, config)
+    TS->>LM: create_listener(listener_config)
+    LM->>LM: validate_config()
+    LM->>LM: bind_socket()
+    LM->>DM: save_listener_config(listener_data)
+    DM->>DB: INSERT INTO listeners(...)
+    DB-->>DM: listener_id
+    DM-->>LM: listener_saved
+    LM-->>TS: listener_created(listener_id)
+    TS-->>C: listener_response(listener_id, status)
+    
+    %% Reconnaissance Phase
+    Note over C,RM: Target Reconnaissance
+    C->>TS: start_reconnaissance(target_ip, scan_options)
+    TS->>RM: scan_target(target, scan_type)
+    RM->>RM: perform_network_scan()
+    RM->>RM: identify_services()
+    RM->>RM: check_vulnerabilities()
+    RM->>DM: save_target_data(target_info)
+    DM->>DB: INSERT INTO targets(...)
+    DM->>DB: INSERT INTO target_services(...)
+    DB-->>DM: records_saved
+    DM-->>RM: data_persisted
+    RM-->>TS: scan_results(target_data)
+    TS-->>C: reconnaissance_complete(results)
+    
+    %% Weaponization Phase
+    Note over C,WM: Payload Creation
+    C->>TS: create_payload(payload_type, target_info, options)
+    TS->>WM: generate_payload(payload_spec)
+    WM->>WM: select_template()
+    WM->>WM: generate_beacon_payload()
+    WM->>WM: apply_obfuscation()
+    WM->>WM: create_document_wrapper()
+    WM->>DM: save_payload(payload_data)
+    DM->>DB: INSERT INTO files(...)
+    DB-->>DM: file_id
+    DM-->>WM: payload_saved
+    WM-->>TS: payload_created(payload_info)
+    TS-->>C: weaponization_complete(payload_id)
+    
+    %% Delivery Phase
+    Note over C,DelM: Phishing Campaign
+    C->>TS: create_campaign(template, targets, payload)
+    TS->>DelM: setup_campaign(campaign_config)
+    DelM->>DelM: validate_targets()
+    DelM->>DelM: customize_email_template()
+    DelM->>DelM: attach_payload()
+    DelM->>DM: save_campaign_data(campaign_info)
+    DM->>DB: INSERT INTO campaigns(...)
+    DB-->>DM: campaign_id
+    DM-->>DelM: campaign_saved
+    DelM-->>TS: campaign_ready(campaign_id)
+    TS-->>C: campaign_created(campaign_id)
+    
+    C->>TS: launch_campaign(campaign_id)
+    TS->>DelM: execute_campaign(campaign_id)
+    DelM->>DelM: send_phishing_emails()
+    DelM->>DM: log_delivery_events(events)
+    DM->>DB: INSERT INTO events(...)
+    DB-->>DM: events_logged
+    DM-->>DelM: events_persisted
+    DelM-->>TS: campaign_launched()
+    TS-->>C: delivery_in_progress()
+    
+    %% Beacon Initialization
+    Note over B,TS: Payload Execution
+    B->>B: initialize_beacon()
+    B->>B: setup_communication()
+    B->>LM: initial_checkin(beacon_info)
+    LM->>SM: create_session(beacon_data)
+    SM->>DM: save_beacon_session(session_info)
+    DM->>DB: INSERT INTO beacons(...)
+    DB-->>DM: beacon_id
+    DM-->>SM: session_created
+    SM-->>LM: session_ready(session_id)
+    LM-->>B: checkin_acknowledged(session_id, commands)
+    LM->>TS: new_beacon_connected(beacon_info)
+    TS-->>C: beacon_notification(beacon_data)
+    
+    %% Command and Control Loop
+    Note over C,B: C2 Operations
+    loop Beacon Check-in Cycle
+        B->>LM: checkin(session_id, status, results)
+        LM->>SM: update_session(session_id, checkin_data)
+        SM->>DM: update_beacon_status(beacon_id, status)
+        DM->>DB: UPDATE beacons SET last_checkin=...
+        DB-->>DM: status_updated
+        DM-->>SM: update_confirmed
+        SM-->>LM: session_updated
+        
+        alt Has Pending Commands
+            LM->>SM: get_pending_commands(session_id)
+            SM->>DM: fetch_commands(beacon_id)
+            DM->>DB: SELECT * FROM beacon_commands WHERE...
+            DB-->>DM: command_list
+            DM-->>SM: commands_retrieved
+            SM-->>LM: pending_commands(commands)
+            LM-->>B: commands_response(commands)
+        else No Commands
+            LM-->>B: no_commands_response()
+        end
+        
+        B->>B: sleep_with_jitter()
+    end
+    
+    %% Interactive Command Execution
+    Note over C,B: Command Execution
+    C->>TS: execute_command(session_id, command, args)
+    TS->>SM: queue_command(session_id, command_data)
+    SM->>DM: save_command(beacon_id, command_info)
+    DM->>DB: INSERT INTO beacon_commands(...)
+    DB-->>DM: command_id
+    DM-->>SM: command_queued
+    SM-->>TS: command_pending(command_id)
+    TS-->>C: command_queued(command_id)
+    
+    %% Next beacon checkin
+    B->>LM: checkin(session_id)
+    LM->>SM: get_pending_commands(session_id)
+    SM-->>LM: commands(command_list)
+    LM-->>B: execute_commands(commands)
+    B->>B: execute_command_locally()
+    B->>LM: checkin_with_results(session_id, results)
+    LM->>SM: update_command_results(command_id, results)
+    SM->>DM: save_command_results(command_id, output)
+    DM->>DB: UPDATE beacon_commands SET output=...
+    DB-->>DM: results_saved
+    DM-->>SM: results_persisted
+    SM-->>LM: command_completed
+    LM->>TS: command_results_available(command_id)
+    TS-->>C: command_output(command_id, results)
+    
+    %% Lateral Movement
+    Note over C,LMM: Network Pivoting
+    C->>TS: create_pivot(source_session, target_host, pivot_type)
+    TS->>LMM: establish_pivot(pivot_config)
+    LMM->>SM: get_session_info(source_session_id)
+    SM-->>LMM: session_data(session_info)
+    LMM->>LMM: validate_pivot_capability()
+    LMM->>TS: queue_pivot_command(source_session, pivot_command)
+    TS->>SM: queue_command(session_id, pivot_setup_command)
+    
+    %% Beacon executes pivot setup
+    B->>B: setup_named_pipe_pivot()
+    B->>LM: pivot_established(pivot_info)
+    LM->>LMM: pivot_callback(pivot_data)
+    LMM->>DM: save_pivot_relationship(pivot_info)
+    DM->>DB: INSERT INTO beacon_pivots(...)
+    DB-->>DM: pivot_saved
+    DM-->>LMM: pivot_persisted
+    LMM-->>TS: pivot_ready(pivot_id)
+    TS-->>C: pivot_established(pivot_info)
+    
+    %% Credential Collection
+    Note over B,LMM: Credential Harvesting
+    B->>B: harvest_credentials()
+    B->>LM: credential_data(session_id, credentials)
+    LM->>LMM: process_credentials(credential_data)
+    LMM->>LMM: parse_credential_types()
+    LMM->>DM: save_credentials(credential_list)
+    DM->>DB: INSERT INTO credentials(...)
+    DB-->>DM: credentials_saved
+    DM-->>LMM: credentials_persisted
+    LMM->>TS: credentials_available(credential_count)
+    TS-->>C: credential_notification(new_credentials)
+    
+    %% Reporting Phase
+    Note over C,RE: Report Generation
+    C->>TS: generate_report(operation_id, report_type)
+    TS->>RE: create_report(operation_id, report_config)
+    RE->>DM: fetch_operation_data(operation_id)
+    DM->>DB: SELECT * FROM events WHERE operation_id=...
+    DM->>DB: SELECT * FROM beacons WHERE operation_id=...
+    DM->>DB: SELECT * FROM targets WHERE operation_id=...
+    DM->>DB: SELECT * FROM credentials WHERE operation_id=...
+    DB-->>DM: operation_dataset
+    DM-->>RE: operation_data(dataset)
+    
+    RE->>RE: build_timeline(events)
+    RE->>RE: map_mitre_techniques(events)
+    RE->>RE: generate_statistics(dataset)
+    RE->>RE: render_report_template(data, template)
+    RE->>DM: save_report(report_content)
+    DM->>DB: INSERT INTO reports(...)
+    DB-->>DM: report_id
+    DM-->>RE: report_saved
+    RE-->>TS: report_ready(report_id, report_path)
+    TS-->>C: report_generated(report_info)
+    
+    %% Session Cleanup
+    Note over C,TS: Operation Cleanup
+    C->>TS: terminate_operation(operation_id)
+    TS->>SM: terminate_all_sessions(operation_id)
+    
+    loop For Each Active Session
+        SM->>LM: queue_exit_command(session_id)
+        LM-->>B: exit_command()
+        B->>B: cleanup_artifacts()
+        B->>B: terminate_beacon()
+        B-->>LM: beacon_terminated()
+        LM->>SM: session_terminated(session_id)
+        SM->>DM: update_beacon_exit(beacon_id)
+        DM->>DB: UPDATE beacons SET exit_date=...
+        DB-->>DM: beacon_updated
+        DM-->>SM: status_updated
+    end
+    
+    SM-->>TS: all_sessions_terminated()
+    TS->>LM: stop_operation_listeners(operation_id)
+    LM->>LM: close_listener_sockets()
+    LM-->>TS: listeners_stopped()
+    TS->>DM: finalize_operation(operation_id)
+    DM->>DB: UPDATE operations SET end_time=...
+    DB-->>DM: operation_finalized
+    DM-->>TS: operation_complete
+    TS-->>C: operation_terminated()
+    
+    %% Cleanup and Shutdown
+    Note over C,TS: System Shutdown
+    C->>TS: disconnect()
+    TS->>TS: cleanup_client_session()
+    TS-->>C: disconnection_confirmed
+    
+    Note over TS: Server Shutdown
+    TS->>SM: shutdown_all_sessions()
+    SM-->>TS: sessions_closed
+    TS->>LM: stop_all_listeners()
+    LM-->>TS: listeners_stopped
+    TS->>DM: close_database_connections()
+    DM->>DB: DISCONNECT
+    DB-->>DM: connection_closed
+    DM-->>TS: database_disconnected
+    TS->>TS: server_shutdown_complete()
